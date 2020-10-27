@@ -1,0 +1,28 @@
+{
+  "custom_shortcuts": [
+    {
+      "name": "flameshot",
+      "command": "/usr/bin/flameshot gui",
+      "binding": "Print",
+      "builtin_replaced": "screenshot"
+    }
+  ],
+  "builtin_shortcuts": [
+    {
+      "name": "next",
+      "binding": "<Primary><Super>Right"
+    },
+    {
+      "name": "previous",
+      "binding": "<Primary><Super>Left"
+    },
+    {
+      "name": "play",
+      "binding": "<Primary><Super>Down"
+    },
+    {
+      "name": "home",
+      "binding": "<Super>e"
+    }
+  ]
+}

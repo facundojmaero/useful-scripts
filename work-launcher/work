@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+
+import subprocess
+from dataclasses import dataclass
+from time import sleep
+from typing import List, Union
+
+MESSAGE = """
+'##:::::'##:'########:'##::::::::'######:::'#######::'##::::'##:'########:
+ ##:'##: ##: ##.....:: ##:::::::'##... ##:'##.... ##: ###::'###: ##.....::
+ ##: ##: ##: ##::::::: ##::::::: ##:::..:: ##:::: ##: ####'####: ##:::::::
+ ##: ##: ##: ######::: ##::::::: ##::::::: ##:::: ##: ## ### ##: ######:::
+ ##: ##: ##: ##...:::: ##::::::: ##::::::: ##:::: ##: ##. #: ##: ##...::::
+ ##: ##: ##: ##::::::: ##::::::: ##::: ##: ##:::: ##: ##:.:: ##: ##:::::::
+. ###. ###:: ########: ########:. ######::. #######:: ##:::: ##: ########:
+:...::...:::........::........:::......::::.......:::..:::::..::........::
+"""
+
+
+TERMINAL_NAME = "Alacritty"
+
+"""
+The structure is: [command to launch, display name, desktop]
+"""
+PROGRAMS_TO_LAUNCH = [
+    ["spotify", "Spotify", 0],
+    ["firefox", "Firefox", 1],
+    ["teams", "Teams", 2],
+    ["telegram-desktop", "Telegram", 3],
+    [["brave-browser --app-id=<FILL_ME>"], "WhatsApp", 4],
+]
+
+
+@dataclass
+class Program:
+    """A simple dataclass that represents a program"""
+
+    name: Union[str, List[str]]
+    display_name: str
+    desktop: int
+
+
+def wait_for_program(program: Program, seconds_to_wait: int = 10) -> None:
+    """Waits for a program to open
+
+    By default waits 10 seconds. After that time prints a "timeout" message
+
+    Args:
+        program (Program): The program to wait for
+        seconds_to_wait_ (int): Seconds to wait for the program to open
+    """
+    for _ in range(seconds_to_wait):
+        ret = subprocess.run(["wmctrl", "-l"], capture_output=True)
+        opened_windows = ret.stdout.decode().splitlines()
+        for window in opened_windows:
+            if program.display_name in window:
+                return
+        sleep(1)
+    print(
+        f"Waiting for program {program.name} timed out after {seconds_to_wait} seconds"
+    )
+
+
+def launch_and_wait(program: Program) -> None:
+    subprocess.Popen(
+        program.name,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        shell=True,
+    )
+    wait_for_program(program)
+
+
+def move_program(program: Program) -> None:
+    move_program_command = [
+        "wmctrl",
+        "-r",
+        program.display_name,
+        "-t",
+        str(program.desktop),
+    ]
+
+    subprocess.run(move_program_command)
+
+
+def main():
+
+    # Set terminal on top so we see what's happening
+    terminal_on_top = ["wmctrl", "-r", TERMINAL_NAME, "-b", "add,above"]
+    subprocess.run(terminal_on_top)
+
+    programs_to_launch = [Program(*p) for p in PROGRAMS_TO_LAUNCH]
+
+    # Launch programs in order
+    for program in programs_to_launch:
+        print(f"Launching {program.name}")
+        launch_and_wait(program)
+
+    print("done launching")
+    print("Wait a bit longer just in case")
+    for i in reversed(range(5)):
+        print(i)
+        sleep(1)
+
+    # Arrange programs in the desired desktop
+    for program in programs_to_launch:
+        print(f"Waiting to move {program.name}")
+        wait_for_program(program)
+        sleep(1)
+        move_program(program)
+        print(f"Moved program {program.name} to desktop {program.desktop}")
+
+    # Done!
+    print(MESSAGE)
+
+
+if __name__ == "__main__":
+    main()
