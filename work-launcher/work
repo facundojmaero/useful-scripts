@@ -17,7 +17,7 @@ MESSAGE = """
 """
 
 
-TERMINAL_NAME = "Alacritty"
+TERMINAL_NAME = "Terminal"
 
 """
 The structure is: [command to launch, display name, desktop]
